@@ -831,7 +831,7 @@ BOOL _stdcall IsFriendlyFire(PED_DAMAGE_TYPE *pDamageIssuer,PED_TYPE *pPlayer)
 	BYTE byteLocalTeam=0, byteRemoteTeam=0;
 	VEHICLEID RemoteVehicleID=-1;
 	PED_TYPE * pPedPlayer = GamePool_FindPlayerPed();
-	BYTE byteRemotePlayerID=0;
+	PLAYERID byteRemotePlayerID=0;
 	PED_TYPE* pIssuer;
 	unsigned short usActorID;
 #ifdef DEBUG
