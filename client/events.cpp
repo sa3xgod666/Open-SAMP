@@ -22,7 +22,7 @@ extern bool bFirstSpawn;
 
 //----------------------------------------------------------
 
-void ProcessIncommingEvent(BYTE bytePlayerID, int iEventType, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3)
+void ProcessIncommingEvent(PLAYERID bytePlayerID, int iEventType, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3)
 {
 	DWORD v;
 	int iVehicleID;
