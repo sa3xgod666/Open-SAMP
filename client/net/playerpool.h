@@ -52,7 +52,7 @@ public:
 
 	PLAYERID GetLocalPlayerID() { return m_byteLocalPlayerID; };
 
-	BYTE GetCount();
+	PLAYERID GetCount();
 
 	int GetLocalPlayerScore() {
 		return m_pLocalPlayer->m_iScore;
