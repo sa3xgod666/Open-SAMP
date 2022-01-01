@@ -15,7 +15,7 @@ using namespace RakNet;
 //#define REGISTER_STATIC_RPC REGISTER_AS_REMOTE_PROCEDURE_CALL 
 //#define UNREGISTER_STATIC_RPC UNREGISTER_AS_REMOTE_PROCEDURE_CALL
 
-void ProcessIncommingEvent(BYTE bytePlayerID, int iEventType, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3);
+void ProcessIncommingEvent(PLAYERID bytePlayerID, int iEventType, DWORD dwParam1, DWORD dwParam2, DWORD dwParam3);
 void ApplyManualVehicleLightsPatch();
 
 //----------------------------------------------------
@@ -247,30 +247,27 @@ void Chat(RPCParameters *rpcParams)
 
 	RakNet::BitStream bsData((unsigned char*)Data, (iBitLength / 8) + 1, false);
 	PLAYERID bytePlayerID;
-	size_t uiTextLen;
+	uint8_t byteTextLen;
 
 	if(pNetGame->GetGameState() != GAMESTATE_CONNECTED)	return;
 
 	unsigned char szText[256];
-	memset(szText,0,256);
+	memset(szText, 0, 256);
 
 	bsData.Read(bytePlayerID);
-	bsData.Read(uiTextLen);
-
-	if(uiTextLen > MAX_CMD_INPUT) return;
-
-	bsData.Read((char*)szText, uiTextLen);
-
-	szText[uiTextLen] = '\0';
+	bsData.Read(byteTextLen);
+	bsData.Read((char*)szText, byteTextLen);
+	szText[byteTextLen] = '\0';
 
 	CPlayerPool* pPlayerPool = pNetGame->GetPlayerPool();
 	if (bytePlayerID == pPlayerPool->GetLocalPlayerID()) {
-		CLocalPlayer* pPlayer = pPlayerPool->GetLocalPlayer();
-		pChatWindow->AddChatMessage((CHAR*)pPlayer->GetName(),
-			pPlayer->GetPlayerColorAsARGB(), (char*)szText);
+		CLocalPlayer* pLocalPlayer = pPlayerPool->GetLocalPlayer();
+		if (pLocalPlayer) {
+			pChatWindow->AddChatMessage((char*)pLocalPlayer->GetName(), pLocalPlayer->GetPlayerColorAsARGB(), (char*)szText);
+		}
 	} else {
 		CRemotePlayer *pRemotePlayer = pPlayerPool->GetAt(bytePlayerID);
-		if(pRemotePlayer != NULL) {
+		if(pRemotePlayer) {
 			pRemotePlayer->Say(szText);	
 		}
 	}
@@ -869,7 +866,7 @@ void ScmEvent(RPCParameters *rpcParams)
 
 	RakNet::BitStream bsData((unsigned char*)Data, (iBitLength / 8) + 1, false);
 	
-	BYTE bytePlayerID;
+	PLAYERID bytePlayerID;
 	int iEvent;
 	DWORD dwParam1,dwParam2,dwParam3;
 
@@ -933,53 +930,6 @@ void ToggleClock(RPCParameters *rpcParams)
 		pNetGame->m_byteHoldTime = 1;
 		pGame->GetWorldTime((int*)&pNetGame->m_byteWorldTime, (int*)&pNetGame->m_byteWorldMinute);
 	}
-}
-
-//----------------------------------------------------
-
-void VehicleDestroy(RPCParameters *rpcParams)
-{
-	CVehiclePool *pVehiclePool = pNetGame->GetVehiclePool();
-	PCHAR Data = reinterpret_cast<PCHAR>(rpcParams->input);
-	int iBitLength = rpcParams->numberOfBitsOfData;
-
-	RakNet::BitStream bsData((unsigned char*)Data, (iBitLength / 8) + 1, false);
-
-	VEHICLEID VehicleID;
-	VEHICLEID MyVehicleID;
-
-	bsData.Read(VehicleID);
-
-	CVehicle *pVehicle = pVehiclePool->GetAt(VehicleID);
-	CRemotePlayer *pRemotePlayer;
-	CPlayerPool *pPlayerPool = pNetGame->GetPlayerPool();
-
-	if(!pVehicle) return;
-			
-	MyVehicleID = pVehiclePool->FindIDFromGtaPtr(pGame->FindPlayerPed()->GetGtaVehicle());
-
-	if (MyVehicleID == VehicleID)
-	{
-		MATRIX4X4 mat;
-		pGame->FindPlayerPed()->GetMatrix(&mat);
-		pGame->FindPlayerPed()->RemoveFromVehicleAndPutAt(mat.pos.X,mat.pos.Y,mat.pos.Z);
-	}
-
-	// we'll also need to remove any remote player that
-	// is in this vehicle.
-	BYTE x=0;
-	while(x!=MAX_PLAYERS) {
-		if(pPlayerPool->GetSlotState(x)) {
-			pRemotePlayer = pPlayerPool->GetAt(x);
-			if( pRemotePlayer->IsActive() && 
-				pRemotePlayer->m_pCurrentVehicle == pVehicle )
-			{
-				pRemotePlayer->ForceOutOfCurrentVehicle();
-			}
-		}
-		x++;
-	}
-	pNetGame->GetVehiclePool()->Delete(VehicleID);
 }
 
 //----------------------------------------------------
@@ -1453,28 +1403,28 @@ void RegisterRPCs(RakClientInterface * pRakClient)
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_InitGame, InitGame);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ClientMessage, ClientMessage);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_Chat, Chat);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_RequestClass, RequestClass);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_RequestSpawn, RequestSpawn);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_Weather, Weather);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldTime, WorldTime);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_RequestClass, RequestClass);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_RequestSpawn, RequestSpawn);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_Weather, Weather);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldTime, WorldTime);
 	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_SetTimeEx, SetTimeEx);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldPlayerAdd, WorldPlayerAdd);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldPlayerRemove, WorldPlayerRemove);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_SetCheckpoint, SetCheckpoint);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_DisableCheckpoint, DisableCheckpoint);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_SetRaceCheckpoint, SetRaceCheckpoint);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_DisableRaceCheckpoint, DisableRaceCheckpoint);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldPlayerAdd, WorldPlayerAdd);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldPlayerRemove, WorldPlayerRemove);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_SetCheckpoint, SetCheckpoint);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_DisableCheckpoint, DisableCheckpoint);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_SetRaceCheckpoint, SetRaceCheckpoint);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_DisableRaceCheckpoint, DisableRaceCheckpoint);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldVehicleAdd, VehicleSpawn);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_WorldVehicleRemove, WorldVehicleRemove);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_EnterVehicle, EnterVehicle);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ExitVehicle, ExitVehicle);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrDialogBox, DialogBoxSAMP);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_GameModeRestart, GameModeRestart);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ConnectionRejected, ConnectionRejected);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_Pickup, Pickup);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_DestroyPickup, DestroyPickup);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrCreate3DTextLabel, Create3DTextLabel);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrUpdate3DTextLabel, Update3DTextLabel);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_EnterVehicle, EnterVehicle);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_ExitVehicle, ExitVehicle);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrDialogBox, DialogBoxSAMP);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_GameModeRestart, GameModeRestart);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_ConnectionRejected, ConnectionRejected);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_Pickup, Pickup);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_DestroyPickup, DestroyPickup);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrCreate3DTextLabel, Create3DTextLabel);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrUpdate3DTextLabel, Update3DTextLabel);
 	/*REGISTER_STATIC_RPC(pRakClient, Chat);
 	REGISTER_STATIC_RPC(pRakClient,RequestClass);
 	REGISTER_STATIC_RPC(pRakClient,RequestSpawn);
