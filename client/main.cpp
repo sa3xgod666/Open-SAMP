@@ -113,6 +113,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
 		hInstance = hinstDLL;
 		InitSettings();
+#ifdef _DEBUG
+		AllocConsole();
+		freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
+		std::cout << "Hello, world" << std::endl;
+#endif
 
 		if(tSettings.bDebug || tSettings.bPlayOnline)
 		{
