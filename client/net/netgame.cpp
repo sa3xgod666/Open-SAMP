@@ -47,7 +47,7 @@ BYTE GetPacketID(Packet *p)
 CNetGame::CNetGame(PCHAR szHostOrIp, int iPort, 
 				   PCHAR szPlayerName, PCHAR szPass)
 {
-	strcpy_s(m_szHostName, "Untitled");
+	strcpy_s(m_szHostName, "San Andreas Multiplayer 0.3.7 R1");
 	strncpy_s(m_szHostOrIp, szHostOrIp, sizeof(m_szHostOrIp));
 	m_iPort = iPort;
 
@@ -155,7 +155,7 @@ void CNetGame::ShutdownForGameModeRestart()
 	m_fNameTagDrawDistance = 70.0f;
 	m_bDisableVehicleCollision = false;
 
-	for (BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
+	for (PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
 		CRemotePlayer* pPlayer = m_pPlayerPool->GetAt(bytePlayerID);
 		if (pPlayer) {
 			pPlayer->SetTeam(NO_TEAM);
@@ -434,6 +434,10 @@ void CNetGame::Packet_PlayerSync(Packet *p)
 
 	bsPlayerSync.Read(bytePacketID);
 	bsPlayerSync.Read(playerId);
+
+#ifdef _DEBUG
+	pChatWindow->AddDebugMessage("[RakLogger] <- OnFoot Packet. Player: %d", playerId);
+#endif
 
 	//bsPlayerSync.Read((PCHAR)&ofSync,sizeof(ONFOOT_SYNC_DATA));
 
