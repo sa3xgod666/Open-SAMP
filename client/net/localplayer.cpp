@@ -728,6 +728,10 @@ void CLocalPlayer::SendOnFootFullSyncData()
 	bsPlayerSync.Write((BYTE)ID_PLAYER_SYNC);
 	bsPlayerSync.Write((PCHAR)&ofSync,sizeof(ONFOOT_SYNC_DATA));
 	pNetGame->GetRakClient()->Send(&bsPlayerSync,HIGH_PRIORITY,UNRELIABLE_SEQUENCED,0);
+
+#ifdef _DEBUG
+	pChatWindow->AddDebugMessage("[RakLogger] -> OnFoot Packet");
+#endif
 }
 
 //----------------------------------------------------------
@@ -1152,7 +1156,7 @@ bool CLocalPlayer::Spawn()
 
 void CLocalPlayer::Say(PCHAR szText)
 {
-	size_t uiTextLen = strlen(szText);
+	unsigned char uiTextLen = strlen(szText);
 
 	RakNet::BitStream bsSend;
 	bsSend.Write(uiTextLen);
@@ -1483,8 +1487,8 @@ int iCyclesUntilNextCount=0;
 
 int CLocalPlayer::DetermineNumberOfPlayersInLocalRange()
 {
-	int iRet=0;
-	BYTE x=0; float fDistance;
+	int iRet = 0;
+	unsigned short x=0; float fDistance;
 	CPlayerPool *pPlayerPool = pNetGame->GetPlayerPool();
 
 	// We only want to perform this operation
