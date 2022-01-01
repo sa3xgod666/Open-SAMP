@@ -12,6 +12,7 @@
 #include <process.h>
 #include <psapi.h>
 #include <time.h>
+#include <iostream>
 
 #define IDC_CMDEDIT		1
 #define IDC_CHATBACK	2
