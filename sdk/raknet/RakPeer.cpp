@@ -1164,8 +1164,14 @@ bool RakPeer::RPC( int* uniqueID, const char *data, unsigned int bitLength, Pack
 	assert(orderingChannel >=0 && orderingChannel < 32);
 #endif
 
+
+
 	if ( *uniqueID > 256 )
 		return false;
+
+#ifdef _DEBUG
+	std::cout << "RakPeer RPC: " << *uniqueID << std::endl;
+#endif
 
 	if (replyFromTarget && blockOnRPCReply==true)
 	{
