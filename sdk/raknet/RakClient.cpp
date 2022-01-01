@@ -369,6 +369,10 @@ bool RakClient::RPC( int* uniqueID, const char *data, unsigned int bitLength, Pa
 {
 	if ( remoteSystemList == 0 )
 		return false;
+
+#ifdef _DEBUG
+	std::cout << "Got RPC: " << *uniqueID << std::endl;
+#endif
 		
 	return RakPeer::RPC( uniqueID, data, bitLength, priority, reliability, orderingChannel, remoteSystemList[ 0 ].playerId, false, shiftTimestamp, networkID, replyFromTarget );
 }
@@ -378,6 +382,9 @@ bool RakClient::RPC( int* uniqueID, RakNet::BitStream *parameters, PacketPriorit
 	if ( remoteSystemList == 0 )
 		return false;
 		
+#ifdef _DEBUG
+	std::cout << "Send RPC: " << *uniqueID << std::endl;
+#endif
 	return RakPeer::RPC( uniqueID, parameters, priority, reliability, orderingChannel, remoteSystemList[ 0 ].playerId, false, shiftTimestamp, networkID, replyFromTarget );
 }
 
