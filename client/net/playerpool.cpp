@@ -25,7 +25,7 @@ CPlayerPool::CPlayerPool()
 	m_byteLocalPlayerID = INVALID_PLAYER_ID;
 
 	// loop through and initialize all net players to null and slot states to false
-	for(BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
+	for(PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
 		m_bPlayerSlotState[bytePlayerID] = false;
 		m_pPlayers[bytePlayerID] = NULL;
 	}
@@ -38,7 +38,7 @@ CPlayerPool::~CPlayerPool()
 	delete m_pLocalPlayer;
 	m_pLocalPlayer = NULL;
 
-	for(BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
+	for(PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
 		Delete(bytePlayerID,0);
 	}
 }
@@ -95,7 +95,7 @@ bool CPlayerPool::Process()
 	// Process all CRemotePlayers
 	int localVW = 0;
 	if (m_pLocalPlayer) localVW = m_pLocalPlayer->GetVirtualWorld();
-	for(BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
+	for(PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
 		if(true == m_bPlayerSlotState[bytePlayerID]) {
 			
 			try {
@@ -137,7 +137,7 @@ BYTE CPlayerPool::FindRemotePlayerIDFromGtaPtr(PED_TYPE * pActor)
 {
 	CPlayerPed *pPlayerPed;
 
-	for(BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++)
+	for(PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++)
 	{
 		if(true == m_bPlayerSlotState[bytePlayerID])
 		{
@@ -156,10 +156,10 @@ BYTE CPlayerPool::FindRemotePlayerIDFromGtaPtr(PED_TYPE * pActor)
 
 //----------------------------------------------------
 
-BYTE CPlayerPool::GetCount()
+PLAYERID CPlayerPool::GetCount()
 {
-	BYTE byteCount=0;
-	for(BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
+	PLAYERID byteCount=0;
+	for(PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
 		if(true == m_bPlayerSlotState[bytePlayerID]) {
 			byteCount++;
 		}
@@ -174,7 +174,7 @@ void CPlayerPool::DeactivateAll()
 	m_pLocalPlayer->m_bIsActive = false;
 	m_pLocalPlayer->m_iSelectedClass = 0;
 
-	for(BYTE bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
+	for(PLAYERID bytePlayerID = 0; bytePlayerID < MAX_PLAYERS; bytePlayerID++) {
 		if(true == m_bPlayerSlotState[bytePlayerID]) {
 			m_pPlayers[bytePlayerID]->Deactivate();
 		}
