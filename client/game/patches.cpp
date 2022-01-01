@@ -296,12 +296,28 @@ bool ApplyPreGamePatches()
 	return true;
 }
 
+void MakeJMP(BYTE* pAddress, DWORD dwJumpTo, DWORD dwLen)
+{
+	DWORD dwOldProtect, dwBkup, dwRelAddr;
+	VirtualProtect(pAddress, dwLen, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+	dwRelAddr = (DWORD)(dwJumpTo - (DWORD)pAddress) - 5;
+	*pAddress = 0xE9;
+	*((DWORD*)(pAddress + 0x1)) = dwRelAddr;
+	for (DWORD x = 0x5; x < dwLen; x++) *(pAddress + x) = 0x90;
+	VirtualProtect(pAddress, dwLen, dwOldProtect, &dwBkup);
+
+	return;
+
+}
+
 //----------------------------------------------------------
 
 static BYTE pbyteVehiclePoolAllocPatch[] = {0x6A,0x00,0x68,0xC6,0x2,0x00,0x00}; // 710
 static BYTE pbyteCollisionPoolAllocPatch[] = { 0x68,0xFF,0x7E,0x00,0x00 }; // 32511
 static BYTE pbyteEntryInfoPoolAllocPatch[] = { 0x68,0x00,0x8,0x00,0x00 }; // 2048
 static BYTE pbyteTrainDelrailmentPatch[] = { 0xB8, 0x89, 0x8F, 0x6F, 0x00, 0xFF, 0xE0 };
+static BYTE pBytePatchScreenResolution[] = { 0x90, 0x90, 0x68, 0x7D };
+static BYTE pBytePatchScreenResolution2[] = { 0x90, 0x90, 0x12, 0x7D };
 
 //extern DWORD dwFarClipHookAddr;
 //extern DWORD dwFarClipReturnAddr;
@@ -325,7 +341,6 @@ void ApplyInGamePatches()
 	// Increase the vehicle pool limit (see top of proc for patch)
 	//UnFuckAndCheck(0x551024,sizeof(pbyteVehiclePoolAllocPatch),0x68);
 	memcpy((PVOID)0x551024,pbyteVehiclePoolAllocPatch,sizeof(pbyteVehiclePoolAllocPatch));
-
 	/* ----THIS IS GTAU STUFF
 	// Increase Buildings
 	UnFuck(0x55105F,4);
@@ -408,6 +423,14 @@ void ApplyInGamePatches()
 	*(BYTE*)0x5B8FE2 = 0x00;
 	*(BYTE*)0x5B8FE3 = 0x00;
 	*(BYTE*)0x5B8FE4 = 0x00;
+
+	// Enable debug anti freeze game.
+#ifdef _DEBUG
+	*(BYTE*)0x747FB6 = 0x1;
+	*(BYTE*)0x74805A = 0x1;
+	memset((void*)0x74542B, 0x90, 8);
+	memset((void*)0x53EA88, 0x90, 6);
+#endif
 	
 	// Increase the collision model ptr
 	//UnFuck(0x551106,sizeof(pbyteCollisionPoolAllocPatch));
@@ -436,9 +459,7 @@ void ApplyInGamePatches()
 	
 	// Remove sun/moon coronas
 	memset((PVOID)0x53C136, 0x90, 5);
-
-	// patch resolution
-	memset((PVOID)0x745BC9, 0x90, 2);
+	
 
 	// dwUIMode was unused, and always 0
 	// Also moving to top left? That's where the chatbox is..
